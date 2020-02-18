@@ -1,3 +1,5 @@
 {
-  "key": "Your api key"
+  "key": "Your api key",
+  "concurrency": 5,
+  "finishDelay": 3000
 }
