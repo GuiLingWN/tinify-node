@@ -1,26 +1,31 @@
 const fs = require('fs-extra')
 const async = require('async')
 const path = require('path')
-const extList = ['.jpg', '.png']
+const extList = ['.JPG', '.jpg', '.png']
 const tinify = require('tinify')
 const cwdPath = process.cwd()
-const { key, concurrency, finishDelay } = fs.readJSONSync(path.resolve(cwdPath, './config.json')) || {}
+const { key, concurrency, finishDelay, imageFolder, outFolder } =
+  fs.readJSONSync(path.resolve(cwdPath, './config.json')) || {}
+let imageFolderPath = path.resolve(cwdPath, imageFolder)
+let outFolderPath = path.resolve(cwdPath, outFolder)
 if (!key) {
   console.error('tinify key 不能为空')
   return
 }
 tinify.key = key
-async function minify(url) {
+async function minify(url = '') {
+  let desPath = url.replace(imageFolderPath, outFolderPath)
+  await fs.ensureDir(path.resolve(desPath, '../'))
   let begin = Date.now()
   console.log(`开始压缩 ${url}`)
   let { size } = await fs.stat(url)
   let source = tinify.fromFile(url)
-  let err = await source.toFile(url)
+  let err = await source.toFile(desPath)
   if (err) {
     console.error(err)
   } else {
     let { size: size2 } = await fs.stat(url)
-    let b2km = n => {
+    let b2km = (n) => {
       if (n > 1024 * 1024) {
         return `${(n / (1024 * 1024)).toFixed(2)}MB`
       } else {
@@ -38,10 +43,14 @@ async function minify(url) {
  * @returns
  */
 async function asyncQueue(queueList, handle) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let q = async.queue(async (path, cb) => {
-      let res = await handle(path)
-      return res
+      try {
+        let res = await handle(path)
+        return res
+      } catch (error) {
+        console.log(error)
+      }
     }, parseInt(concurrency) || 10)
     q.drain(resolve)
     for (let i = 0; i < queueList.length; i++) {
@@ -51,8 +60,8 @@ async function asyncQueue(queueList, handle) {
 }
 
 ;(async () => {
-  let dirPath = path.resolve(cwdPath, './imgs')
-  let flist = walk(dirPath)
+  await fs.remove(outFolderPath)
+  let flist = walk(imageFolderPath)
   let begin = Date.now()
   await asyncQueue(flist, minify)
   console.log(`总耗时 ${Math.round((Date.now() - begin) / 1000)}s`)
@@ -66,7 +75,7 @@ async function asyncQueue(queueList, handle) {
 function walk(dir) {
   var results = []
   var list = fs.readdirSync(dir)
-  list.forEach(file => {
+  list.forEach((file) => {
     file2 = dir + '/' + file
     var stat = fs.statSync(file2)
     let fileInfo = path.parse(file2)
@@ -79,7 +88,7 @@ function walk(dir) {
   return results
 }
 async function sleep(timeout) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(() => {
       resolve()
     }, timeout)
