@@ -2,6 +2,6 @@
   "key": "Your api key",
   "concurrency": 5,
   "finishDelay": 3000,
-  "imageFolder": "./imgs1",
+  "imageFolder": "./imgs",
   "outFolder": "./out"
 }
