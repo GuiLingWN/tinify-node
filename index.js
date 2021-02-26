@@ -6,13 +6,29 @@ const tinify = require('tinify')
 const cwdPath = process.cwd()
 const { key, concurrency, finishDelay, imageFolder, outFolder } =
   fs.readJSONSync(path.resolve(cwdPath, './config.json')) || {}
+tinify.key = key
 let imageFolderPath = path.resolve(cwdPath, imageFolder)
 let outFolderPath = path.resolve(cwdPath, outFolder)
-if (!key) {
-  console.error('tinify key 不能为空')
-  return
-}
-tinify.key = key
+;(async () => {
+  try {
+    if (!key) {
+      throw new Error('tinify key 不能为空')
+    }
+    let exist = await fs.pathExists(imageFolderPath)
+    if (!exist) {
+      throw new Error(`目录 ${imageFolderPath} 不存在`)
+    }
+    await fs.remove(outFolderPath)
+    let flist = walk(imageFolderPath)
+    let begin = Date.now()
+    await asyncQueue(flist, minify)
+    console.log(`总耗时 ${Math.round((Date.now() - begin) / 1000)}s`)
+    await sleep(parseInt(finishDelay) || 3000)
+  } catch (error) {
+    console.error(error)
+    await sleep(parseInt(finishDelay) || 3000)
+  }
+})()
 async function minify(url = '') {
   let desPath = url.replace(imageFolderPath, outFolderPath)
   await fs.ensureDir(path.resolve(desPath, '../'))
@@ -58,15 +74,6 @@ async function asyncQueue(queueList, handle) {
     }
   })
 }
-
-;(async () => {
-  await fs.remove(outFolderPath)
-  let flist = walk(imageFolderPath)
-  let begin = Date.now()
-  await asyncQueue(flist, minify)
-  console.log(`总耗时 ${Math.round((Date.now() - begin) / 1000)}s`)
-  await sleep(parseInt(finishDelay) || 3000)
-})()
 
 /**
  * 遍历文件目录
