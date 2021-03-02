@@ -11,8 +11,8 @@ let imageFolderPath = path.resolve(cwdPath, imageFolder)
 let outFolderPath = path.resolve(cwdPath, outFolder)
 ;(async () => {
   try {
-    if (!key) {
-      throw new Error('tinify key 不能为空')
+    if (!key|| key.indexOf(' ')!=-1) {
+      throw new Error('请修改config.js中的key，可前往tinify.com注册获取')
     }
     let exist = await fs.pathExists(imageFolderPath)
     if (!exist) {
@@ -40,7 +40,7 @@ async function minify(url = '') {
   if (err) {
     console.error(err)
   } else {
-    let { size: size2 } = await fs.stat(url)
+    let { size: size2 } = await fs.stat(desPath)
     let b2km = (n) => {
       if (n > 1024 * 1024) {
         return `${(n / (1024 * 1024)).toFixed(2)}MB`
