@@ -12,7 +12,7 @@ let outFolderPath = path.resolve(cwdPath, outFolder)
 ;(async () => {
   try {
     if (!key|| key.indexOf(' ')!=-1) {
-      throw new Error('请修改config.js中的key，可前往tinify.com注册获取')
+      throw new Error('请修改 config.js 中的key，可前往 tinify.com 注册获取')
     }
     let exist = await fs.pathExists(imageFolderPath)
     if (!exist) {

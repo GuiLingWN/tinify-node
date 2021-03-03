@@ -3,14 +3,17 @@
 使用 node 实现 https://tinypng.com/ API 对接，实现批量压缩
 
 ### 源码运行
+
 ```
 #依赖安装
 npm i
 #运行程序
 node index
 ```
-### exe运行
-直接双击index.exe，确保config.json配置正确
+
+### exe 运行
+
+直接双击 index.exe，确保 config.json 配置正确
 
 ### config.js 配置参数
 
